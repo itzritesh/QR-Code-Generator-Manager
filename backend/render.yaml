@@ -6,7 +6,7 @@ services:
     env: node
     plan: starter
     region: ohio
-    buildCommand: npm install && npm run build && npx prisma migrate deploy
+    buildCommand: npm install --include=dev && npm run build && npx prisma migrate deploy
     startCommand: npm run start
     healthCheckPath: /api/health
     autoDeploy: true
