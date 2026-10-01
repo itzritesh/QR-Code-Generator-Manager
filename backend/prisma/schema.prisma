@@ -1,0 +1,91 @@
+// Prisma Schema for QR Code Generator & Management Platform
+// Production schema for PostgreSQL (Neon)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for Authentication and Account Management
+model User {
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  passwordHash         String    @map("password_hash")
+  name                 String
+  avatar               String?
+  role                 String    @default("user")
+  branding             Json?
+  resetPasswordToken   String?   @map("reset_password_token")
+  resetPasswordExpires DateTime? @map("reset_password_expires")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  qrCodes              QrCode[]
+
+  @@index([email])
+  @@index([resetPasswordToken])
+  @@map("users")
+}
+
+enum QrType {
+  URL
+  TEXT
+  WIFI
+  PAYMENT
+}
+
+enum QrStatus {
+  ACTIVE
+  DISABLED
+}
+
+model QrCode {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  type        QrType
+  content     String    @db.Text
+  isDynamic   Boolean   @default(false) @map("is_dynamic")
+  status      QrStatus  @default(ACTIVE)
+  scanCount   Int       @default(0) @map("scan_count")
+  shortCode      String?   @unique @map("short_code")
+  destinationUrl String?   @map("destination_url") @db.Text
+  lastScannedAt  DateTime? @map("last_scanned_at")
+  metadata       Json?
+  design         Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  scans          QrScan[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([shortCode])
+  @@map("qr_codes")
+}
+
+model QrScan {
+  id              String    @id @default(uuid())
+  qrCodeId        String    @map("qr_code_id")
+  qrCode          QrCode    @relation(fields: [qrCodeId], references: [id], onDelete: Cascade)
+  scannedAt       DateTime  @default(now()) @map("scanned_at")
+  deviceType      String    @default("unknown") @map("device_type")
+  browser         String    @default("Unknown")
+  operatingSystem String    @default("Unknown") @map("operating_system")
+  country         String    @default("Unknown")
+  city            String?   @default("Unknown")
+  referrer        String?   @default("Direct / Camera")
+  visitorId       String    @map("visitor_id")
+
+  @@index([qrCodeId])
+  @@index([qrCodeId, scannedAt])
+  @@index([scannedAt])
+  @@index([qrCodeId, deviceType])
+  @@index([qrCodeId, browser])
+  @@index([qrCodeId, operatingSystem])
+  @@map("qr_scans")
+}

@@ -1,0 +1,35 @@
+# Render Infrastructure as Code (Blueprint) Specification
+# Deploy with one click on Render: https://render.com
+services:
+  - type: web
+    name: qr-code-backend
+    env: node
+    plan: starter
+    region: ohio
+    buildCommand: npm install && npm run build && npx prisma migrate deploy
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: APP_BASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX
+        value: 300
+      - key: TRUST_PROXY
+        value: 1
