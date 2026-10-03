@@ -41,6 +41,8 @@ const envSchema = z.object({
     .string()
     .default('1')
     .transform((val) => parseInt(val, 10)),
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().default('QR Manager <onboarding@resend.dev>'),
 });
 
 const parseEnv = () => {
