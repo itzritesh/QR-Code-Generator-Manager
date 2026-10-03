@@ -32,7 +32,7 @@ export const handleDynamicScan = async (
     const cleanShortCode = shortCode.trim();
 
     // Check memory cache first to handle traffic spikes with zero DB latency
-    let qr = dynamicQrCache.get(cleanShortCode);
+    let qr: any = dynamicQrCache.get(cleanShortCode);
 
     if (!qr) {
       // Lookup QR by unique shortCode from database

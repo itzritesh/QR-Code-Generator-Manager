@@ -149,7 +149,7 @@ export const createQrSchema = z.object({
   name: z.string().min(1, 'QR Name is required.').max(100, 'QR Name cannot exceed 100 characters.').trim(),
   type: z.enum(['URL', 'TEXT', 'WIFI', 'PAYMENT']),
   isDynamic: z.boolean().optional(),
-  destinationUrl: urlValidator.optional(),
+  destinationUrl: z.string().max(2048).optional(),
   metadata: z.object({
     url: urlValidator.optional(),
     text: z.string().max(2000, 'Text exceeds 2,000 characters.').optional(),
@@ -192,7 +192,7 @@ export const updateQrSchema = z.object({
   name: z.string().min(1, 'QR Name is required.').max(100).trim().optional(),
   status: z.enum(['ACTIVE', 'DISABLED']).optional(),
   isDynamic: z.boolean().optional(),
-  destinationUrl: urlValidator.optional(),
+  destinationUrl: z.string().max(2048).optional(),
   metadata: z.object({
     url: urlValidator.optional(),
     text: z.string().max(2000).optional(),

@@ -86,6 +86,7 @@ export const dynamicQrCache = new SimpleTtlCache<{
   type: string;
   content: string;
   destinationUrl: string | null;
+  metadata?: any;
   isDynamic: boolean;
   status: string;
   scanCount: number;
