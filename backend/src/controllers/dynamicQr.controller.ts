@@ -5,6 +5,9 @@ import {
   validateDestinationUrl,
   renderInactiveQrHtml,
   renderNotFoundQrHtml,
+  renderTextQrHtml,
+  renderWifiQrHtml,
+  renderPaymentQrHtml,
 } from '../utils/dynamicQr.utils.js';
 import { extractScanMetadata } from '../utils/scanTracker.utils.js';
 import { dynamicQrCache } from '../utils/cache.utils.js';
@@ -41,6 +44,7 @@ export const handleDynamicScan = async (
           type: true,
           content: true,
           destinationUrl: true,
+          metadata: true,
           isDynamic: true,
           status: true,
           scanCount: true,
@@ -89,10 +93,26 @@ export const handleDynamicScan = async (
       }),
     ]);
 
-    logger.info(`[Dynamic QR] Scan recorded for "${qr.name}" (${shortCode}) [Device: ${meta.deviceType}, OS: ${meta.operatingSystem}, Browser: ${meta.browser}]`);
+    logger.info(`[Dynamic QR] Scan recorded for "${qr.name}" (${shortCode}) [Type: ${qr.type}, Device: ${meta.deviceType}, OS: ${meta.operatingSystem}, Browser: ${meta.browser}]`);
 
-    // 4. Validate Destination URL to prevent open redirects or dangerous protocols
-    const targetUrl = qr.destinationUrl || qr.content;
+    // 4. Handle Type-specific Dynamic Content
+    if (qr.type === 'TEXT') {
+      const text = (qr.metadata as any)?.text || qr.destinationUrl || qr.content;
+      return res.status(200).send(renderTextQrHtml({ name: qr.name, text }));
+    }
+
+    if (qr.type === 'WIFI') {
+      const wifi = (qr.metadata as any)?.wifi || {};
+      return res.status(200).send(renderWifiQrHtml({ name: qr.name, ...wifi }));
+    }
+
+    if (qr.type === 'PAYMENT') {
+      const payment = (qr.metadata as any)?.payment || {};
+      return res.status(200).send(renderPaymentQrHtml({ name: qr.name, ...payment }));
+    }
+
+    // 5. Default URL redirection: Validate Destination URL to prevent open redirects or dangerous protocols
+    const targetUrl = qr.destinationUrl || (qr.metadata as any)?.url || qr.content;
     const validation = validateDestinationUrl(targetUrl);
 
     if (!validation.isValid || !validation.normalizedUrl) {
@@ -100,7 +120,7 @@ export const handleDynamicScan = async (
       return res.status(400).send(renderNotFoundQrHtml());
     }
 
-    // 5. Safe HTTP 302 Redirection
+    // Safe HTTP 302 Redirection
     return res.redirect(302, validation.normalizedUrl);
   } catch (error) {
     logger.error('[Dynamic QR] Error processing dynamic scan:', error);

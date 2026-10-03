@@ -144,13 +144,27 @@ export const QrViewModal: React.FC<QrViewModalProps> = ({
                   </div>
                 </div>
 
-                {/* Final Destination Website */}
+                {/* Final Destination / Dynamic Content */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold uppercase text-slate-500">Destination Website</span>
+                    <span className="text-xs font-semibold uppercase text-slate-500">
+                      {qr.type === 'URL'
+                        ? 'Destination Website'
+                        : qr.type === 'TEXT'
+                        ? 'Dynamic Text Content'
+                        : qr.type === 'WIFI'
+                        ? 'Wi-Fi Network (SSID)'
+                        : 'UPI / Payment Target'}
+                    </span>
                   </div>
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200/80 font-mono text-xs text-slate-700 break-all select-all">
-                    {qr.destinationUrl || qr.metadata?.url || 'Not configured'}
+                    {qr.type === 'TEXT'
+                      ? (qr.metadata?.text || qr.destinationUrl || 'Not configured')
+                      : qr.type === 'WIFI'
+                      ? (qr.metadata?.wifi ? `${qr.metadata.wifi.ssid} (${qr.metadata.wifi.security || 'WPA'})` : qr.destinationUrl || 'Not configured')
+                      : qr.type === 'PAYMENT'
+                      ? (qr.metadata?.payment?.upiId ? `${qr.metadata.payment.upiId} ${qr.metadata.payment.payeeName ? `(${qr.metadata.payment.payeeName})` : ''}` : qr.destinationUrl || 'Not configured')
+                      : (qr.destinationUrl || qr.metadata?.url || 'Not configured')}
                   </div>
                 </div>
               </>

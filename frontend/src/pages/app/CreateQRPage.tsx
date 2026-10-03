@@ -246,7 +246,7 @@ export const CreateQRPage: React.FC = () => {
 
   // Compute live raw payload
   const currentPayload = useMemo(() => {
-    if (qrType === 'URL' && isDynamic) {
+    if (isDynamic) {
       return dynamicScanUrl;
     }
     return computeQrPayload(qrType, {
@@ -419,11 +419,19 @@ export const CreateQRPage: React.FC = () => {
 
     setIsSaving(true);
     try {
+      const destinationUrl = qrType === 'URL'
+        ? url.trim()
+        : qrType === 'TEXT'
+          ? text.trim()
+          : qrType === 'WIFI'
+            ? wifiData.ssid.trim()
+            : paymentData.upiId?.trim() || paymentData.paymentUrl?.trim();
+
       if (editId) {
         const updatedQr = await qrApi.updateQr(editId, {
           name: qrName.trim(),
           isDynamic,
-          destinationUrl: qrType === 'URL' ? url.trim() : undefined,
+          destinationUrl,
           metadata: {
             url: qrType === 'URL' ? url.trim() : undefined,
             text: qrType === 'TEXT' ? text.trim() : undefined,
@@ -440,8 +448,8 @@ export const CreateQRPage: React.FC = () => {
         const savedQr = await qrApi.createQr({
           name: qrName.trim(),
           type: qrType,
-          isDynamic: qrType === 'URL' ? isDynamic : false,
-          destinationUrl: qrType === 'URL' ? url.trim() : undefined,
+          isDynamic,
+          destinationUrl,
           metadata: {
             url: qrType === 'URL' ? url.trim() : undefined,
             text: qrType === 'TEXT' ? text.trim() : undefined,
@@ -576,45 +584,6 @@ export const CreateQRPage: React.FC = () => {
                     helperText="Destination URL where visitors are redirected when scanning."
                     required
                   />
-
-                  {/* Dynamic Switch & Info Box */}
-                  <div className="p-3 rounded-xl border border-indigo-100 bg-indigo-50/50 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-indigo-950">Dynamic Shortlink QR</span>
-                          <Badge variant="brand" size="sm">Recommended</Badge>
-                        </div>
-                        <p className="text-[11px] text-indigo-800/80">
-                          Route scans through a redirect link. Allows editing destination anytime and tracking scans.
-                        </p>
-                      </div>
-                      <Switch
-                        checked={isDynamic}
-                        onChange={setIsDynamic}
-                        disabled={Boolean(editId && isDynamic)}
-                      />
-                    </div>
-
-                    {isDynamic && existingScanUrl && (
-                      <div className="pt-2 border-t border-indigo-100 text-xs flex items-center justify-between text-indigo-900 gap-2">
-                        <div className="truncate max-w-[280px]">
-                          <span className="text-[10px] uppercase font-semibold text-indigo-600 block">Shortlink URL:</span>
-                          <span className="font-mono text-xs">{existingScanUrl}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(existingScanUrl);
-                            toast.success('Copied shortlink URL');
-                          }}
-                          className="px-2 py-1 text-[11px] font-semibold bg-white border border-indigo-200 rounded-lg text-indigo-600 hover:bg-indigo-50 shrink-0 cursor-pointer"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
 
@@ -759,6 +728,55 @@ export const CreateQRPage: React.FC = () => {
                   />
                 </div>
               )}
+
+              {/* Dynamic QR Toggle & Analytics Info Box (Applicable to All QR Types) */}
+              <div className="p-3.5 rounded-xl border border-indigo-100 bg-indigo-50/60 space-y-2.5 mt-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5 pr-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-indigo-950">Dynamic QR & Analytics</span>
+                      <Badge variant="brand" size="sm">Recommended</Badge>
+                    </div>
+                    <p className="text-[11px] text-indigo-800/85">
+                      {isDynamic ? (
+                        qrType === 'URL'
+                          ? 'Routes scans through a smart redirect link. Allows editing destination anytime & tracks live scan counts in analytics.'
+                          : qrType === 'TEXT'
+                          ? 'Displays a responsive mobile card with 1-tap "Copy Text". Allows updating text anytime without reprinting & tracks scans in analytics!'
+                          : qrType === 'WIFI'
+                          ? 'Displays network details with 1-tap "Copy Wi-Fi Password". Allows updating Wi-Fi settings anytime without reprinting & tracks scans!'
+                          : 'Displays a mobile checkout card with 1-tap "Pay via UPI App" & "Copy UPI ID". Allows updating payee or amounts anytime & tracks scans!'
+                      ) : (
+                        'Static mode (offline). Encodes data directly into the QR pattern. Scanned offline by cameras; cannot track scans in analytics.'
+                      )}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isDynamic}
+                    onChange={setIsDynamic}
+                    disabled={Boolean(editId && isDynamic)}
+                  />
+                </div>
+
+                {isDynamic && existingScanUrl && (
+                  <div className="pt-2 border-t border-indigo-100 text-xs flex items-center justify-between text-indigo-900 gap-2">
+                    <div className="truncate max-w-[280px]">
+                      <span className="text-[10px] uppercase font-semibold text-indigo-600 block">Shortlink Scan URL:</span>
+                      <span className="font-mono text-xs">{existingScanUrl}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(existingScanUrl);
+                        toast.success('Copied shortlink URL');
+                      }}
+                      className="px-2 py-1 text-[11px] font-semibold bg-white border border-indigo-200 rounded-lg text-indigo-600 hover:bg-indigo-50 shrink-0 cursor-pointer"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                )}
+              </div>
             </CardBody>
           </Card>
 
@@ -1301,7 +1319,7 @@ export const CreateQRPage: React.FC = () => {
                   <Badge variant="brand" size="sm">
                     {qrType}
                   </Badge>
-                  {isDynamic && qrType === 'URL' && (
+                  {isDynamic && (
                     <Badge variant="warning" size="sm">
                       Dynamic
                     </Badge>
@@ -1355,11 +1373,11 @@ export const CreateQRPage: React.FC = () => {
               </div>
 
               {/* Truthful Encoded Payload / Dynamic Routing Snippet */}
-              {isDynamic && qrType === 'URL' ? (
+              {isDynamic ? (
                 <div className="mt-3 w-full space-y-1.5 p-2.5 rounded-lg bg-indigo-50/50 border border-indigo-100 text-left text-xs">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-indigo-700 block mb-0.5">
-                      Printed Scan URL:
+                      Printed Dynamic Scan URL:
                     </span>
                     <p className="font-mono text-[11px] text-indigo-950 bg-white p-1 rounded border border-indigo-200/70 truncate select-all">
                       {dynamicScanUrl}
@@ -1367,21 +1385,27 @@ export const CreateQRPage: React.FC = () => {
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">
-                      Redirect Destination:
+                      {qrType === 'URL' ? 'Redirect Destination:' : qrType === 'TEXT' ? 'Dynamic Text Payload:' : qrType === 'WIFI' ? 'Dynamic Wi-Fi Network:' : 'Dynamic Payment Target:'}
                     </span>
                     <p className="text-[11px] text-slate-700 truncate font-mono bg-white p-1 rounded border border-slate-200 select-all">
-                      {url || '(empty)'}
+                      {qrType === 'URL' ? (url || '(empty)') : qrType === 'TEXT' ? (text || '(empty)') : qrType === 'WIFI' ? (`SSID: ${wifiData.ssid || '(empty)'}`) : (`UPI: ${paymentData.upiId || paymentData.paymentUrl || '(empty)'}`)}
                     </p>
                   </div>
+                  <span className="text-[10px] text-indigo-700 block font-medium">
+                    ✓ Scans route through server to track scan count & analytics.
+                  </span>
                 </div>
               ) : (
-                <div className="mt-3 w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 text-left">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-0.5">
-                    Encoded Payload:
+                <div className="mt-3 w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-left text-xs space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                    Static QR Payload (Offline):
                   </span>
-                  <p className="text-[11px] font-mono text-slate-700 break-all line-clamp-2 select-all bg-white p-1 rounded border border-slate-200/60">
+                  <p className="font-mono text-[11px] text-slate-700 bg-white p-1 rounded border border-slate-200 truncate select-all">
                     {currentPayload || '(empty)'}
                   </p>
+                  <span className="text-[10px] text-slate-400 block">
+                    Static QR codes are decoded offline by camera and cannot record scan counts.
+                  </span>
                 </div>
               )}
 

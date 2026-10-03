@@ -54,12 +54,21 @@ export const qrService = {
     let destinationUrl: string | null = null;
 
     if (isDynamic) {
-      const rawTarget = (data.destinationUrl || data.metadata?.url || '').trim();
-      const validation = validateDestinationUrl(rawTarget);
-      if (!validation.isValid || !validation.normalizedUrl) {
-        throw new AppError(validation.error || 'A valid destination URL is required for dynamic QR codes.', 400);
+      if (data.type === 'URL') {
+        const rawTarget = (data.destinationUrl || data.metadata?.url || '').trim();
+        const validation = validateDestinationUrl(rawTarget);
+        if (!validation.isValid || !validation.normalizedUrl) {
+          throw new AppError(validation.error || 'A valid destination URL is required for dynamic QR codes.', 400);
+        }
+        destinationUrl = validation.normalizedUrl;
+      } else if (data.type === 'TEXT') {
+        destinationUrl = data.metadata?.text?.trim() || null;
+      } else if (data.type === 'WIFI') {
+        destinationUrl = data.metadata?.wifi?.ssid?.trim() || null;
+      } else if (data.type === 'PAYMENT') {
+        destinationUrl = data.metadata?.payment?.upiId?.trim() || data.metadata?.payment?.paymentUrl?.trim() || null;
       }
-      destinationUrl = validation.normalizedUrl;
+
       shortCode = await generateUniqueShortCode(prisma, 7);
       content = `${getDynamicQrBaseUrl()}/q/${shortCode}`;
     } else {
@@ -200,14 +209,30 @@ export const qrService = {
     };
 
     if (isDynamic) {
-      const targetUrl = (data.destinationUrl || data.metadata?.url || existing.destinationUrl || '').trim();
-      if (targetUrl) {
-        const validation = validateDestinationUrl(targetUrl);
-        if (!validation.isValid || !validation.normalizedUrl) {
-          throw new AppError(validation.error || 'Invalid destination URL for dynamic QR code.', 400);
+      if (existing.type === 'URL') {
+        const targetUrl = (data.destinationUrl || data.metadata?.url || existing.destinationUrl || '').trim();
+        if (targetUrl) {
+          const validation = validateDestinationUrl(targetUrl);
+          if (!validation.isValid || !validation.normalizedUrl) {
+            throw new AppError(validation.error || 'Invalid destination URL for dynamic QR code.', 400);
+          }
+          destinationUrl = validation.normalizedUrl;
+          mergedMetadata.url = validation.normalizedUrl;
         }
-        destinationUrl = validation.normalizedUrl;
-        mergedMetadata.url = validation.normalizedUrl;
+      } else if (existing.type === 'TEXT') {
+        if (data.metadata?.text !== undefined) {
+          destinationUrl = data.metadata.text.trim();
+        }
+      } else if (existing.type === 'WIFI') {
+        if (data.metadata?.wifi?.ssid !== undefined) {
+          destinationUrl = data.metadata.wifi.ssid.trim();
+        }
+      } else if (existing.type === 'PAYMENT') {
+        if (data.metadata?.payment?.upiId !== undefined) {
+          destinationUrl = data.metadata.payment.upiId.trim();
+        } else if (data.metadata?.payment?.paymentUrl !== undefined) {
+          destinationUrl = data.metadata.payment.paymentUrl.trim();
+        }
       }
 
       // Ensure shortCode exists
