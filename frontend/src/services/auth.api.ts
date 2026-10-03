@@ -60,6 +60,13 @@ export const authApi = {
     return res.data.data;
   },
 
+  googleLogin: async (credential: string): Promise<AuthResponse> => {
+    const res = await apiClient.post<{ success: boolean; data: AuthResponse }>('/auth/google', {
+      credential,
+    });
+    return res.data.data;
+  },
+
   logout: async (): Promise<void> => {
     try {
       await apiClient.post('/auth/logout');

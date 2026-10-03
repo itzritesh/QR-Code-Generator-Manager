@@ -9,6 +9,7 @@ import {
   forgotPassword,
   resetPassword,
   deleteAccount,
+  googleLogin,
 } from '../controllers/auth.controller.js';
 import { authenticate } from '../middleware/auth.middleware.js';
 import { authRateLimiter } from '../middleware/rateLimiter.js';
@@ -20,6 +21,7 @@ import {
   changePasswordSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  googleLoginSchema,
 } from '../validators/auth.validator.js';
 
 const router = Router();
@@ -27,6 +29,7 @@ const router = Router();
 // Public Authentication Routes
 router.post('/register', authRateLimiter, validateRequest({ body: registerSchema }), register);
 router.post('/login', authRateLimiter, validateRequest({ body: loginSchema }), login);
+router.post('/google', authRateLimiter, validateRequest({ body: googleLoginSchema }), googleLogin);
 router.post('/logout', logout);
 router.post('/forgot-password', authRateLimiter, validateRequest({ body: forgotPasswordSchema }), forgotPassword);
 router.post('/reset-password', authRateLimiter, validateRequest({ body: resetPasswordSchema }), resetPassword);

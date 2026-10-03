@@ -105,3 +105,13 @@ export const deleteAccount = async (req: Request, res: Response, next: NextFunct
     next(error);
   }
 };
+
+export const googleLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { credential } = req.body;
+    const result = await authService.googleLogin(credential);
+    sendSuccess(res, result, 'Successfully authenticated with Google.', 200);
+  } catch (error) {
+    next(error);
+  }
+};

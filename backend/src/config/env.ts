@@ -43,6 +43,7 @@ const envSchema = z.object({
     .transform((val) => parseInt(val, 10)),
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().default('QR Manager <onboarding@resend.dev>'),
+  GOOGLE_CLIENT_ID: z.string().optional(),
 });
 
 const parseEnv = () => {

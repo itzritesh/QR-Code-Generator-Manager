@@ -91,3 +91,9 @@ export const resetPasswordSchema = z
     message: 'Passwords do not match',
     path: ['confirmPassword'],
   });
+
+export const googleLoginSchema = z.object({
+  credential: z
+    .string({ required_error: 'Google credential is required' })
+    .min(10, 'Google credential token is too short or invalid'),
+});

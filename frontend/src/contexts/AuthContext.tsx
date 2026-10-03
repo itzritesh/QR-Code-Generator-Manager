@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<User>;
   register: (payload: RegisterPayload) => Promise<User>;
+  googleLogin: (credential: string) => Promise<User>;
   logout: () => Promise<void>;
   updateProfile: (payload: UpdateProfilePayload) => Promise<User>;
   changePassword: (payload: ChangePasswordPayload) => Promise<string>;
@@ -80,6 +81,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const googleLogin = useCallback(async (credential: string): Promise<User> => {
+    setIsLoading(true);
+    try {
+      const { user: googleUser, token: authToken } = await authApi.googleLogin(credential);
+      localStorage.setItem('auth_token', authToken);
+      setToken(authToken);
+      setUser(googleUser);
+      return googleUser;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(async (): Promise<void> => {
     try {
       await authApi.logout();
@@ -120,6 +134,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoading,
         login,
         register,
+        googleLogin,
         logout,
         updateProfile,
         changePassword,

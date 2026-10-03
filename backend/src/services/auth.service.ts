@@ -232,4 +232,78 @@ export const authService = {
     await prisma.user.delete({ where: { id: userId } });
     return { message: 'Your account and all associated QR codes have been permanently deleted.' };
   },
+
+  /**
+   * Authenticate or register user using Google ID token credential
+   */
+  googleLogin: async (credential: string): Promise<{ user: UserResponse; token: string }> => {
+    if (!credential) {
+      throw new AppError('Google authentication credential is required.', 400);
+    }
+
+    // Verify token with Google's public tokeninfo endpoint
+    let payload: any;
+    try {
+      const response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+      );
+      if (!response.ok) {
+        throw new Error('Google token verification failed');
+      }
+      payload = await response.json();
+    } catch (err: any) {
+      throw new AppError('Invalid or expired Google authentication credential.', 401);
+    }
+
+    const { email, name, picture, email_verified, aud } = payload;
+
+    if (!email) {
+      throw new AppError('Google account does not contain a valid email address.', 400);
+    }
+
+    // Verify that Google confirmed the email address
+    if (email_verified !== true && email_verified !== 'true') {
+      throw new AppError('Google email address has not been verified by Google.', 401);
+    }
+
+    // If GOOGLE_CLIENT_ID is configured in environment, verify audience matches
+    if (env.GOOGLE_CLIENT_ID && aud !== env.GOOGLE_CLIENT_ID) {
+      throw new AppError('Google client authentication ID mismatch.', 401);
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user already exists
+    let user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+
+    if (user) {
+      // Update avatar if not already set and Google provides one
+      if (!user.avatar && picture) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { avatar: picture },
+        });
+      }
+    } else {
+      // Create new user account automatically for Google login
+      const randomSecret = crypto.randomBytes(32).toString('hex');
+      const passwordHash = await bcrypt.hash(randomSecret, 10);
+
+      user = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          name: name || normalizedEmail.split('@')[0],
+          avatar: picture || null,
+          passwordHash,
+          role: 'user',
+        },
+      });
+    }
+
+    const token = generateToken(user);
+    return {
+      user: sanitizeUser(user),
+      token,
+    };
+  },
 };
