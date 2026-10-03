@@ -337,7 +337,7 @@ export const CreateQRPage: React.FC = () => {
   }, [editId]);
 
   const handleApplyTemplate = (template: QrTemplate) => {
-    setDesign({ ...template.design });
+    setDesign({ ...template.design, templateId: template.id });
     toast.success(`Applied "${template.name}" template design.`, 'Template Applied');
   };
 
@@ -875,32 +875,45 @@ export const CreateQRPage: React.FC = () => {
 
                   {/* Template Cards Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {QR_TEMPLATES.map((tmpl) => (
-                      <div
-                        key={tmpl.id}
-                        onClick={() => handleApplyTemplate(tmpl)}
-                        className="p-2.5 rounded-lg border border-slate-200/80 bg-white hover:border-indigo-400 hover:shadow-xs transition-all cursor-pointer text-left flex flex-col justify-between"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-xs font-semibold text-slate-800">{tmpl.name}</span>
-                            <span className="text-[9px] uppercase font-bold text-slate-400 bg-slate-100 px-1 py-0.5 rounded">
-                              {tmpl.category}
+                    {QR_TEMPLATES.map((tmpl) => {
+                      const isSelected = design.templateId === tmpl.id || (design.fgColor === tmpl.design.fgColor && design.dotStyle === tmpl.design.dotStyle && design.bgColor === tmpl.design.bgColor);
+                      return (
+                        <div
+                          key={tmpl.id}
+                          onClick={() => handleApplyTemplate(tmpl)}
+                          className={cn(
+                            'p-2.5 rounded-lg border bg-white hover:border-indigo-400 hover:shadow-xs transition-all cursor-pointer text-left flex flex-col justify-between relative',
+                            isSelected
+                              ? 'border-indigo-600 ring-2 ring-indigo-500/30 bg-indigo-50/20'
+                              : 'border-slate-200/80 hover:bg-slate-50/50'
+                          )}
+                        >
+                          {isSelected && (
+                            <span className="absolute -top-1.5 -right-1.5 bg-indigo-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-xs">
+                              ✓
                             </span>
+                          )}
+                          <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-xs font-semibold text-slate-800">{tmpl.name}</span>
+                              <span className="text-[9px] uppercase font-bold text-slate-400 bg-slate-100 px-1 py-0.5 rounded">
+                                {tmpl.category}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                              {tmpl.description}
+                            </p>
                           </div>
-                          <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                            {tmpl.description}
-                          </p>
+                          <div className="flex items-center gap-1 mt-2.5 pt-1.5 border-t border-slate-100">
+                            <span
+                              className="w-3.5 h-3.5 rounded-full border border-slate-200 inline-block shrink-0"
+                              style={{ backgroundColor: tmpl.design.fgColor }}
+                            />
+                            <span className="text-[10px] text-slate-400 capitalize">{tmpl.design.dotStyle}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 mt-2.5 pt-1.5 border-t border-slate-100">
-                          <span
-                            className="w-3.5 h-3.5 rounded-full border border-slate-200 inline-block"
-                            style={{ backgroundColor: tmpl.design.fgColor }}
-                          />
-                          <span className="text-[10px] text-slate-400 capitalize">{tmpl.design.dotStyle}</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

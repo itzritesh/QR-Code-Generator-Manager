@@ -113,11 +113,11 @@ export const AppLayout: React.FC = () => {
   const hasUnreadNotifications = notificationList.some((n) => n.unread);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col md:flex-row">
+    <div className="h-screen bg-slate-50 text-slate-800 flex flex-col md:flex-row overflow-hidden">
       {/* ========================================================= */}
       {/* DESKTOP SIDEBAR (Compact, balanced w-60)                   */}
       {/* ========================================================= */}
-      <aside className="hidden md:flex md:w-60 flex-col bg-white border-r border-slate-200/90 shrink-0 sticky top-0 h-screen z-30">
+      <aside className="hidden md:flex md:w-60 flex-col bg-white border-r border-slate-200/90 shrink-0 h-full z-30">
         {/* Brand Header */}
         <div className="h-14 px-4 border-b border-slate-100 flex items-center justify-between">
           <Link to="/app" className="flex items-center gap-2.5">
@@ -354,9 +354,9 @@ export const AppLayout: React.FC = () => {
       {/* ========================================================= */}
       {/* MAIN VIEWPORT CONTAINER                                   */}
       {/* ========================================================= */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Top Navbar (Clean, compact 56px height, no noisy breadcrumb) */}
-        <header className="sticky top-0 z-20 h-14 bg-white/95 backdrop-blur-xs border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <header className="h-14 shrink-0 bg-white/95 backdrop-blur-xs border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 flex items-center justify-between z-20">
           {/* Left: Mobile Toggle & Page Title */}
           <div className="flex items-center gap-2.5">
             <IconButton
