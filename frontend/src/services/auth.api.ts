@@ -87,9 +87,10 @@ export const authApi = {
   },
 
   forgotPassword: async (email: string): Promise<ForgotPasswordResponse> => {
+    const clientOrigin = typeof window !== 'undefined' ? window.location.origin : undefined;
     const res = await apiClient.post<{ success: boolean; data: ForgotPasswordResponse }>(
       '/auth/forgot-password',
-      { email }
+      { email, clientOrigin }
     );
     return res.data.data;
   },

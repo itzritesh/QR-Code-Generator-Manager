@@ -72,6 +72,7 @@ export const forgotPasswordSchema = z.object({
     .trim()
     .email('Please enter a valid email address')
     .toLowerCase(),
+  clientOrigin: z.string().trim().optional(),
 });
 
 export const resetPasswordSchema = z

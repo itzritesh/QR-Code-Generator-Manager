@@ -65,8 +65,20 @@ export const changePassword = async (req: Request, res: Response, next: NextFunc
 
 export const forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { email } = req.body;
-    const clientOrigin = (req.headers.origin as string) || env.CORS_ORIGIN;
+    const { email, clientOrigin: bodyOrigin } = req.body;
+    let rawOrigin =
+      bodyOrigin ||
+      (req.headers.origin as string) ||
+      (req.headers.referer ? new URL(req.headers.referer).origin : null) ||
+      env.FRONTEND_URL ||
+      env.CORS_ORIGIN;
+
+    // If CORS_ORIGIN has multiple comma-separated URLs, take the first one
+    if (typeof rawOrigin === 'string' && rawOrigin.includes(',')) {
+      rawOrigin = rawOrigin.split(',')[0].trim();
+    }
+
+    const clientOrigin = (rawOrigin || 'http://localhost:5173').trim().replace(/\/+$/, '');
     const result = await authService.forgotPassword(email, clientOrigin);
     sendSuccess(res, result, result.message, 200);
   } catch (error) {
