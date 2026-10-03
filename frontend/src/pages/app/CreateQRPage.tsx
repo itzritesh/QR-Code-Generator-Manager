@@ -513,7 +513,7 @@ export const CreateQRPage: React.FC = () => {
       )}
 
       {/* Main Two-Panel Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* ========================================================= */}
         {/* LEFT PANEL: Inputs & Customization (7 cols)               */}
         {/* ========================================================= */}
@@ -1308,8 +1308,9 @@ export const CreateQRPage: React.FC = () => {
         {/* ========================================================= */}
         {/* RIGHT PANEL: Live Sticky Studio Preview (5 cols)           */}
         {/* ========================================================= */}
-        <div className="lg:col-span-5 sticky top-2 z-10 space-y-3">
-          <Card className="border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="lg:col-span-5">
+          <div className="sticky top-4 z-10 space-y-3">
+            <Card className="border-slate-200/90 shadow-sm overflow-hidden">
             <CardHeader className="bg-slate-50/70 border-b border-slate-100 py-2.5 px-3.5">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-1.5">
@@ -1469,6 +1470,7 @@ export const CreateQRPage: React.FC = () => {
               </div>
             </CardBody>
           </Card>
+          </div>
         </div>
       </div>
     </div>
