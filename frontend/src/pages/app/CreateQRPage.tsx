@@ -17,7 +17,7 @@ import {
   HiOutlineViewGrid,
   HiOutlineTag,
 } from 'react-icons/hi';
-import { Card, CardHeader, CardTitle, CardBody, CardFooter, CardDescription } from '../../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardBody, CardDescription } from '../../components/ui/Card';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
@@ -98,6 +98,7 @@ export const CreateQRPage: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [showRoutingDetails, setShowRoutingDetails] = useState(false);
 
   // Handle URL Template Parameter
   useEffect(() => {
@@ -1307,25 +1308,25 @@ export const CreateQRPage: React.FC = () => {
         {/* ========================================================= */}
         {/* RIGHT PANEL: Live Sticky Studio Preview (5 cols)           */}
         {/* ========================================================= */}
-        <div className="lg:col-span-5 sticky top-20 space-y-4">
-          <Card className="border-slate-200/90 overflow-hidden">
-            <CardHeader className="bg-slate-50/60 border-b border-slate-100">
+        <div className="lg:col-span-5 sticky top-2 z-10 space-y-3">
+          <Card className="border-slate-200/90 shadow-sm overflow-hidden">
+            <CardHeader className="bg-slate-50/70 border-b border-slate-100 py-2.5 px-3.5">
               <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <HiOutlineSparkles className="w-4 h-4 text-indigo-600" />
-                  <CardTitle className="text-sm font-semibold">Live Preview</CardTitle>
-                </div>
                 <div className="flex items-center gap-1.5">
-                  <Badge variant="brand" size="sm">
+                  <HiOutlineSparkles className="w-4 h-4 text-indigo-600" />
+                  <CardTitle className="text-xs sm:text-sm font-semibold text-slate-800">Live Preview</CardTitle>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Badge variant="brand" size="sm" className="text-[10px] px-1.5 py-0">
                     {qrType}
                   </Badge>
                   {isDynamic && (
-                    <Badge variant="warning" size="sm">
+                    <Badge variant="warning" size="sm" className="text-[10px] px-1.5 py-0">
                       Dynamic
                     </Badge>
                   )}
                   {design.logo?.dataUrl && (
-                    <Badge variant="success" size="sm">
+                    <Badge variant="success" size="sm" className="text-[10px] px-1.5 py-0">
                       Logo
                     </Badge>
                   )}
@@ -1333,16 +1334,16 @@ export const CreateQRPage: React.FC = () => {
               </div>
             </CardHeader>
 
-            <CardBody className="p-4 sm:p-5 flex flex-col items-center justify-center">
+            <CardBody className="p-3 sm:p-3.5 flex flex-col items-center justify-center space-y-2">
               {/* Dynamic Live Canvas Container */}
               <div
-                className="p-3 sm:p-4 rounded-xl shadow-inner border border-slate-200/90 flex items-center justify-center relative overflow-hidden max-w-full"
+                className="p-2 sm:p-2.5 rounded-xl shadow-inner border border-slate-200/90 flex items-center justify-center relative overflow-hidden max-w-full"
                 style={{ backgroundColor: design.bgColor }}
               >
                 <canvas
                   ref={canvasRef}
-                  className="max-w-full w-48 sm:w-56 h-auto rounded-md object-contain transition-opacity duration-150"
-                  style={{ maxHeight: '280px' }}
+                  className="max-w-full w-40 sm:w-44 lg:w-44 h-auto rounded-md object-contain transition-opacity duration-150"
+                  style={{ maxHeight: '180px' }}
                 />
 
                 {isRendering && (
@@ -1354,102 +1355,119 @@ export const CreateQRPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Title & Metadata Badges */}
-              <div className="mt-3 text-center w-full">
-                <span className="font-bold text-xs sm:text-sm text-slate-900 block truncate">
+              {/* Title & Status Badges */}
+              <div className="w-full flex items-center justify-between gap-1 text-xs px-0.5">
+                <span className="font-bold text-slate-900 truncate max-w-[150px] text-xs" title={qrName || 'Untitled QR Code'}>
                   {qrName || 'Untitled QR Code'}
                 </span>
-                <div className="flex items-center justify-center gap-1.5 mt-1 flex-wrap">
-                  <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/70">
-                    ECC: Level {design.logo?.dataUrl ? 'H' : design.errorCorrection}
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-[9px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/70">
+                    ECC {design.logo?.dataUrl ? 'H' : design.errorCorrection}
                   </span>
-                  <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/70 capitalize">
-                    Dot: {design.dotStyle}
+                  <span className="text-[9px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200/70 capitalize">
+                    {design.dotStyle}
                   </span>
-                  <span className="text-[10px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    ✓ Scannable
+                  <span className="text-[9px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    ✓ Live
                   </span>
                 </div>
               </div>
 
-              {/* Truthful Encoded Payload / Dynamic Routing Snippet */}
-              {isDynamic ? (
-                <div className="mt-3 w-full space-y-1.5 p-2.5 rounded-lg bg-indigo-50/50 border border-indigo-100 text-left text-xs">
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-indigo-700 block mb-0.5">
-                      Printed Dynamic Scan URL:
+              {/* Collapsible Destination & Routing Details Drawer */}
+              <div className="w-full">
+                <button
+                  type="button"
+                  onClick={() => setShowRoutingDetails(!showRoutingDetails)}
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-[11px] text-slate-600 transition-colors cursor-pointer select-none"
+                >
+                  <span className="flex items-center gap-1.5 truncate">
+                    <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', isDynamic ? 'bg-indigo-500' : 'bg-slate-400')} />
+                    <span className="font-medium truncate text-slate-700">
+                      {isDynamic ? 'Dynamic QR Link' : 'Static Offline QR'}
                     </span>
-                    <p className="font-mono text-[11px] text-indigo-950 bg-white p-1 rounded border border-indigo-200/70 truncate select-all">
-                      {dynamicScanUrl}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">
-                      {qrType === 'URL' ? 'Redirect Destination:' : qrType === 'TEXT' ? 'Dynamic Text Payload:' : qrType === 'WIFI' ? 'Dynamic Wi-Fi Network:' : 'Dynamic Payment Target:'}
-                    </span>
-                    <p className="text-[11px] text-slate-700 truncate font-mono bg-white p-1 rounded border border-slate-200 select-all">
-                      {qrType === 'URL' ? (url || '(empty)') : qrType === 'TEXT' ? (text || '(empty)') : qrType === 'WIFI' ? (`SSID: ${wifiData.ssid || '(empty)'}`) : (`UPI: ${paymentData.upiId || paymentData.paymentUrl || '(empty)'}`)}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-indigo-700 block font-medium">
-                    ✓ Scans route through server to track scan count & analytics.
                   </span>
-                </div>
-              ) : (
-                <div className="mt-3 w-full p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-left text-xs space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">
-                    Static QR Payload (Offline):
+                  <span className="text-[10px] font-semibold text-indigo-600 shrink-0 ml-1">
+                    {showRoutingDetails ? 'Hide Details ▲' : 'Details ▼'}
                   </span>
-                  <p className="font-mono text-[11px] text-slate-700 bg-white p-1 rounded border border-slate-200 truncate select-all">
-                    {currentPayload || '(empty)'}
-                  </p>
-                  <span className="text-[10px] text-slate-400 block">
-                    Static QR codes are decoded offline by camera and cannot record scan counts.
-                  </span>
-                </div>
-              )}
+                </button>
 
-              {/* Direct Download Action */}
-              <div className="mt-3.5 w-full">
+                {showRoutingDetails && (
+                  <div className="mt-1.5 p-2 rounded-lg bg-indigo-50/50 border border-indigo-100 text-left text-xs space-y-1.5 transition-all">
+                    {isDynamic ? (
+                      <>
+                        <div>
+                          <span className="text-[9px] uppercase font-bold text-indigo-700 block mb-0.5">
+                            Printed Dynamic Scan URL:
+                          </span>
+                          <p className="font-mono text-[10px] text-indigo-950 bg-white p-1 rounded border border-indigo-200/70 truncate select-all">
+                            {dynamicScanUrl}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">
+                            {qrType === 'URL' ? 'Redirect Destination:' : qrType === 'TEXT' ? 'Dynamic Text Payload:' : qrType === 'WIFI' ? 'Dynamic Wi-Fi Network:' : 'Dynamic Payment Target:'}
+                          </span>
+                          <p className="text-[10px] text-slate-700 truncate font-mono bg-white p-1 rounded border border-slate-200 select-all">
+                            {qrType === 'URL' ? (url || '(empty)') : qrType === 'TEXT' ? (text || '(empty)') : qrType === 'WIFI' ? (`SSID: ${wifiData.ssid || '(empty)'}`) : (`UPI: ${paymentData.upiId || paymentData.paymentUrl || '(empty)'}`)}
+                          </p>
+                        </div>
+                        <span className="text-[9px] text-indigo-700 block font-medium">
+                          ✓ Scans route through server to track scan count & analytics.
+                        </span>
+                      </>
+                    ) : (
+                      <div>
+                        <span className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">
+                          Static QR Payload:
+                        </span>
+                        <p className="font-mono text-[10px] text-slate-700 bg-white p-1 rounded border border-slate-200 truncate select-all">
+                          {currentPayload || '(empty)'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Direct Actions in One Sleek Compact Row */}
+              <div className="w-full flex items-center gap-1.5 pt-2 border-t border-slate-100">
                 <Button
                   variant="primary"
-                  size="md"
+                  size="sm"
                   fullWidth
+                  onClick={handleSaveQR}
+                  isLoading={isSaving}
+                  loadingText={editId ? 'Updating...' : 'Saving...'}
+                  leftIcon={<HiOutlineCheck className="w-4 h-4" />}
+                  className="flex-1 justify-center shadow-xs text-xs font-semibold py-2"
+                >
+                  {editId ? 'Update QR' : 'Save QR'}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleDownload}
                   isLoading={isExporting}
-                  loadingText="Exporting..."
-                  leftIcon={<HiOutlineDownload className="w-4 h-4" />}
-                  className="justify-center shadow-xs"
+                  leftIcon={<HiOutlineDownload className="w-3.5 h-3.5" />}
+                  className="shrink-0 text-xs py-2 px-2.5 bg-white"
+                  title={`Download ${exportFormat.toUpperCase()}`}
                 >
-                  Download {exportFormat.toUpperCase()}
+                  {exportFormat.toUpperCase()}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleReset}
+                  disabled={isSaving}
+                  className="shrink-0 text-xs py-2 px-2 text-slate-500 hover:text-slate-800"
+                  title="Reset Defaults"
+                >
+                  <HiOutlineRefresh className="w-4 h-4" />
                 </Button>
               </div>
             </CardBody>
-
-            {/* Bottom Actions: Reset & Save */}
-            <CardFooter className="bg-slate-50/60 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5">
-              <Button
-                variant="outline"
-                size="md"
-                onClick={handleReset}
-                disabled={isSaving}
-                leftIcon={<HiOutlineRefresh className="w-4 h-4" />}
-                className="w-full sm:w-auto"
-              >
-                Reset
-              </Button>
-              <Button
-                variant="primary"
-                size="md"
-                onClick={handleSaveQR}
-                isLoading={isSaving}
-                loadingText={editId ? 'Updating...' : 'Saving...'}
-                leftIcon={<HiOutlineCheck className="w-4 h-4" />}
-                className="w-full sm:w-auto"
-              >
-                {editId ? 'Update QR Code' : 'Save QR Code'}
-              </Button>
-            </CardFooter>
           </Card>
         </div>
       </div>
