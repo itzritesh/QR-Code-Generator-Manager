@@ -18,6 +18,7 @@ import {
 import { Button } from '../../components/ui/Button';
 import { Card, CardBody } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
+import { KineticGrid } from '../../components/ui/KineticGrid';
 
 export const LandingPage: React.FC = () => {
   const [activeType, setActiveType] = useState<'url' | 'wifi' | 'text' | 'payment'>('url');
@@ -107,8 +108,13 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* HERO SECTION WITH LIVE INTERACTIVE GENERATOR PREVIEW */}
       {/* ========================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Kinetic Grid Interactive Background */}
+        <div className="absolute inset-0 -top-10 -bottom-10 -left-6 -right-6 sm:-left-12 sm:-right-12 -z-10 overflow-hidden pointer-events-none">
+          <KineticGrid className="w-full h-full" />
+        </div>
+
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Hero Pitch */}
           <div className="lg:col-span-7 text-left space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold">
