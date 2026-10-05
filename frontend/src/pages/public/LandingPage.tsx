@@ -19,6 +19,7 @@ import { Button } from '../../components/ui/Button';
 import { Card, CardBody } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { KineticGrid } from '../../components/ui/KineticGrid';
+import { RibbonGlow } from '../../components/ui/RibbonGlow';
 
 export const LandingPage: React.FC = () => {
   const [activeType, setActiveType] = useState<'url' | 'wifi' | 'text' | 'payment'>('url');
@@ -348,23 +349,53 @@ export const LandingPage: React.FC = () => {
       {/* CALL TO ACTION BANNER */}
       {/* ========================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-indigo-700 to-indigo-900 rounded-3xl p-8 sm:p-14 text-white text-center sm:text-left flex flex-col lg:flex-row items-center justify-between gap-8 shadow-elevated">
-          <div className="space-y-3 max-w-xl">
-            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+        <div className="relative isolate overflow-hidden rounded-3xl p-8 sm:p-14 text-white text-center sm:text-left flex flex-col lg:flex-row items-center justify-between gap-8 shadow-2xl border border-indigo-500/20 bg-[#070614]">
+          {/* Ribbon Glow WebGL2 Interactive Background */}
+          <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+            <RibbonGlow
+              className="w-full h-full"
+              background="#09071c"
+              color1="#38bdf8"
+              color2="#818cf8"
+              speed={42}
+              size={90}
+              angle={-175}
+              hover={120}
+              reach={280}
+            />
+            {/* Soft subtle gradient to guarantee high text contrast and legibility */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#09071c]/90 via-[#09071c]/55 to-transparent pointer-events-none" />
+          </div>
+
+          <div className="relative z-10 space-y-3 max-w-xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-indigo-200 text-xs font-semibold">
+              <HiOutlineSparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Instant Setup &bull; No Credit Card Required</span>
+            </div>
+            <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-xs">
               Ready to elevate your QR management?
             </h3>
-            <p className="text-indigo-100 text-sm sm:text-base leading-relaxed">
+            <p className="text-indigo-100/90 text-sm sm:text-base leading-relaxed">
               Start building high-converting dynamic campaigns, customize every pixel, and gain actionable scan intelligence today.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
+
+          <div className="relative z-10 flex flex-wrap items-center gap-3 shrink-0">
             <Link to="/register">
-              <Button variant="secondary" size="lg" className="bg-white text-indigo-700 hover:bg-indigo-50 font-bold shadow-md">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="bg-white text-indigo-700 hover:bg-indigo-50 hover:shadow-lg font-bold transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              >
                 Create Free Account
               </Button>
             </Link>
             <Link to="/app">
-              <Button variant="ghost" size="lg" className="text-white hover:bg-white/10 border border-white/20">
+              <Button
+                variant="ghost"
+                size="lg"
+                className="text-white hover:bg-white/15 border border-white/25 backdrop-blur-xs transition-all"
+              >
                 Open App Demo
               </Button>
             </Link>

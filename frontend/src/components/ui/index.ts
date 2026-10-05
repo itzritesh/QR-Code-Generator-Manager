@@ -23,3 +23,4 @@ export * from './ErrorState';
 export * from './ToastContext';
 export * from './PageHeader';
 export * from './KineticGrid';
+export * from './RibbonGlow';
