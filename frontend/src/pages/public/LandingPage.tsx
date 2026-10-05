@@ -13,6 +13,7 @@ import {
   HiOutlineDocumentText,
   HiOutlineCreditCard,
   HiOutlineArrowRight,
+  HiOutlineArrowUp,
   HiOutlineCheck,
 } from 'react-icons/hi';
 import { Button } from '../../components/ui/Button';
@@ -69,6 +70,20 @@ export const LandingPage: React.FC = () => {
   const handleTypeSelect = (type: 'url' | 'wifi' | 'text' | 'payment') => {
     setActiveType(type);
     setQrInput(typePresets[type].defaultValue);
+  };
+
+  const scrollToDemo = () => {
+    const demoElement = document.getElementById('live-demo');
+    if (demoElement) {
+      demoElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Softly focus the input box after smooth scroll finishes
+      const input = demoElement.querySelector('input');
+      if (input) {
+        setTimeout(() => input.focus(), 600);
+      }
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const capabilities = [
@@ -167,7 +182,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Right Live Interactive Showcase Card */}
-          <div className="lg:col-span-5">
+          <div id="live-demo" className="lg:col-span-5 scroll-mt-28">
             <Card className="border border-slate-200/90 shadow-elevated bg-white p-6 relative">
               <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2">
@@ -390,15 +405,15 @@ export const LandingPage: React.FC = () => {
                 Create Free Account
               </Button>
             </Link>
-            <Link to="/app">
-              <Button
-                variant="ghost"
-                size="lg"
-                className="text-white hover:bg-white/15 border border-white/25 backdrop-blur-xs transition-all"
-              >
-                Open App Demo
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={scrollToDemo}
+              leftIcon={<HiOutlineArrowUp className="w-4 h-4" />}
+              className="text-white hover:bg-white/15 border border-white/25 backdrop-blur-xs transition-all cursor-pointer"
+            >
+              Try Live Demo
+            </Button>
           </div>
         </div>
       </section>
