@@ -108,9 +108,9 @@ export const LandingPage: React.FC = () => {
       {/* ========================================================= */}
       {/* HERO SECTION WITH LIVE INTERACTIVE GENERATOR PREVIEW */}
       {/* ========================================================= */}
-      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative isolate max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Kinetic Grid Interactive Background */}
-        <div className="absolute inset-0 -top-10 -bottom-10 -left-6 -right-6 sm:-left-12 sm:-right-12 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 -top-8 -bottom-8 -left-4 -right-4 sm:-left-8 sm:-right-8 z-0 overflow-hidden pointer-events-none">
           <KineticGrid className="w-full h-full" />
         </div>
 

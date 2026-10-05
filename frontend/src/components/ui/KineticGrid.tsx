@@ -21,12 +21,12 @@ export interface KineticGridProps {
 
 export const KineticGrid: React.FC<KineticGridProps> = ({
   className = '',
-  spacing = 34,
-  radius = 170,
-  pullStrength = 1.6,
+  spacing = 32,
+  radius = 180,
+  pullStrength = 2.0,
   springConstant = 0.08,
   damping = 0.88,
-  nodeSize = 1.6,
+  nodeSize = 2.0,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -70,7 +70,7 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       cols = Math.ceil(width / spacing) + 2;
       rows = Math.ceil(height / spacing) + 2;
@@ -160,8 +160,8 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
 
       // Smooth mouse position interpolation
       if (mouse.active) {
-        mouse.x += (mouse.targetX - mouse.x) * 0.2;
-        mouse.y += (mouse.targetY - mouse.y) * 0.2;
+        mouse.x += (mouse.targetX - mouse.x) * 0.22;
+        mouse.y += (mouse.targetY - mouse.y) * 0.22;
       } else {
         mouse.x = -9999;
         mouse.y = -9999;
@@ -181,15 +181,15 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
             const dist = Math.hypot(dx, dy);
 
             if (dist < radius && dist > 1) {
-              const force = Math.pow(1 - dist / radius, 1.8) * pullStrength;
+              const force = Math.pow(1 - dist / radius, 1.6) * pullStrength;
               const angle = Math.atan2(dy, dx);
-              node.vx += Math.cos(angle) * force * 3.5;
-              node.vy += Math.sin(angle) * force * 3.5;
+              node.vx += Math.cos(angle) * force * 4.2;
+              node.vy += Math.sin(angle) * force * 4.2;
             }
           }
 
           // Subtle harmonic ambient motion when idle
-          const ambientWave = Math.sin(time + node.baseX * 0.008 + node.baseY * 0.008) * 0.4;
+          const ambientWave = Math.sin(time + node.baseX * 0.01 + node.baseY * 0.01) * 0.6;
 
           // Hooke's Law Spring Force returning to base position
           const targetX = node.baseX;
@@ -217,7 +217,7 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
             ctx.lineTo(node.x, node.y);
           }
         }
-        ctx.strokeStyle = 'rgba(99, 102, 241, 0.12)';
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.20)';
         ctx.stroke();
       }
 
@@ -232,7 +232,7 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
             ctx.lineTo(node.x, node.y);
           }
         }
-        ctx.strokeStyle = 'rgba(99, 102, 241, 0.12)';
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.20)';
         ctx.stroke();
       }
 
@@ -243,19 +243,28 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
           const distToMouse = mouse.active ? Math.hypot(mouse.x - node.x, mouse.y - node.y) : 9999;
           const isNearMouse = distToMouse < radius;
 
-          ctx.beginPath();
           if (isNearMouse) {
-            // Enhanced glow for nodes near the cursor
             const intensity = Math.max(0, 1 - distToMouse / radius);
-            const currentRadius = nodeSize + intensity * 1.6;
+            const currentRadius = nodeSize + intensity * 2.2;
+
+            // Outer glow ring
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, currentRadius + 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(99, 102, 241, ${0.15 + intensity * 0.35})`;
+            ctx.fill();
+
+            // Core dot
+            ctx.beginPath();
             ctx.arc(node.x, node.y, currentRadius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(79, 70, 229, ${0.4 + intensity * 0.55})`;
+            ctx.fillStyle = `rgba(67, 56, 202, ${0.7 + intensity * 0.3})`;
+            ctx.fill();
           } else {
             // Standard ambient dot
+            ctx.beginPath();
             ctx.arc(node.x, node.y, nodeSize, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(99, 102, 241, 0.35)';
+            ctx.fillStyle = 'rgba(99, 102, 241, 0.50)';
+            ctx.fill();
           }
-          ctx.fill();
         }
       }
 
@@ -279,7 +288,11 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
     <div
       ref={containerRef}
       aria-hidden="true"
-      className={`pointer-events-none select-none overflow-hidden [mask-image:radial-gradient(ellipse_at_center,black_45%,transparent_80%)] ${className}`}
+      style={{
+        WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 88%)',
+        maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 88%)',
+      }}
+      className={`pointer-events-none select-none overflow-hidden ${className}`}
     >
       <canvas ref={canvasRef} className="block w-full h-full" />
     </div>
