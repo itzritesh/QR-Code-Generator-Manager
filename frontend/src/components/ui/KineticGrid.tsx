@@ -13,7 +13,7 @@ export interface KineticGridProps {
   className?: string;
   spacing?: number;
   radius?: number;
-  pullStrength?: number;
+  pushStrength?: number;
   springConstant?: number;
   damping?: number;
   nodeSize?: number;
@@ -21,12 +21,12 @@ export interface KineticGridProps {
 
 export const KineticGrid: React.FC<KineticGridProps> = ({
   className = '',
-  spacing = 34,
-  radius = 220,
-  pullStrength = 5.5,
-  springConstant = 0.06,
-  damping = 0.86,
-  nodeSize = 2.2,
+  spacing = 38,
+  radius = 150,
+  pushStrength = 1.2,
+  springConstant = 0.05,
+  damping = 0.88,
+  nodeSize = 1.3,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -121,10 +121,10 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
 
       // Active when hovering over or near the container
       if (
-        e.clientX >= rect.left - 100 &&
-        e.clientX <= rect.right + 100 &&
-        e.clientY >= rect.top - 100 &&
-        e.clientY <= rect.bottom + 100
+        e.clientX >= rect.left - 60 &&
+        e.clientX <= rect.right + 60 &&
+        e.clientY >= rect.top - 60 &&
+        e.clientY <= rect.bottom + 60
       ) {
         mouse.targetX = e.clientX - rect.left;
         mouse.targetY = e.clientY - rect.top;
@@ -144,10 +144,10 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
       const touch = e.touches[0];
 
       if (
-        touch.clientX >= rect.left - 80 &&
-        touch.clientX <= rect.right + 80 &&
-        touch.clientY >= rect.top - 80 &&
-        touch.clientY <= rect.bottom + 80
+        touch.clientX >= rect.left - 60 &&
+        touch.clientX <= rect.right + 60 &&
+        touch.clientY >= rect.top - 60 &&
+        touch.clientY <= rect.bottom + 60
       ) {
         mouse.targetX = touch.clientX - rect.left;
         mouse.targetY = touch.clientY - rect.top;
@@ -174,12 +174,12 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
         return;
       }
 
-      time += 0.025;
+      time += 0.016;
 
       // Smooth mouse position interpolation
       if (mouse.active) {
-        mouse.x += (mouse.targetX - mouse.x) * 0.25;
-        mouse.y += (mouse.targetY - mouse.y) * 0.25;
+        mouse.x += (mouse.targetX - mouse.x) * 0.2;
+        mouse.y += (mouse.targetY - mouse.y) * 0.2;
       } else {
         mouse.x = -9999;
         mouse.y = -9999;
@@ -187,30 +187,34 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Update Physics for each Node (Dynamic Waves + Interactive Pull)
+      // 1. Update Physics for each Node (Harmonic Waves + Soft Deflection)
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const node = nodes[r][c];
 
-          // Continuous harmonic wave motion across the mesh
-          const waveY = Math.sin(time * 1.8 + node.baseX * 0.015 + node.baseY * 0.015) * 5.5;
-          const waveX = Math.cos(time * 1.4 + node.baseX * 0.015 - node.baseY * 0.015) * 4.0;
+          // Gentle ambient wave motion across the mesh
+          const waveY = Math.sin(time + node.baseX * 0.009 + node.baseY * 0.009) * 2.8;
+          const waveX = Math.cos(time * 0.8 + node.baseX * 0.009 - node.baseY * 0.009) * 1.8;
 
-          // Interactive magnetic cursor pull / gravity warp
+          // Interactive soft repulsive deflection (curves mesh smoothly without bunching dots)
           if (mouse.active) {
-            const dx = mouse.x - node.x;
-            const dy = mouse.y - node.y;
+            const dx = node.x - mouse.x;
+            const dy = node.y - mouse.y;
             const dist = Math.hypot(dx, dy);
 
-            if (dist < radius && dist > 1) {
-              const force = Math.sin((1 - dist / radius) * (Math.PI / 2)) * pullStrength;
+            if (dist < radius && dist > 0.5) {
+              const norm = dist / radius; // 0 to 1
+              // Smooth cosine falloff: strongest right at cursor, smoothly 0 at boundary
+              const factor = Math.cos(norm * Math.PI * 0.5);
+              const force = factor * pushStrength;
               const angle = Math.atan2(dy, dx);
-              node.vx += Math.cos(angle) * force * 1.8;
-              node.vy += Math.sin(angle) * force * 1.8;
+
+              node.vx += Math.cos(angle) * force;
+              node.vy += Math.sin(angle) * force;
             }
           }
 
-          // Hooke's Law Spring Force returning to animated wave base position
+          // Hooke's Law Spring Force returning to wave base position
           const targetX = node.baseX + waveX;
           const targetY = node.baseY + waveY;
           const ax = (targetX - node.x) * springConstant;
@@ -236,7 +240,7 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
             ctx.lineTo(node.x, node.y);
           }
         }
-        ctx.strokeStyle = 'rgba(99, 102, 241, 0.24)';
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.16)';
         ctx.stroke();
       }
 
@@ -251,11 +255,11 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
             ctx.lineTo(node.x, node.y);
           }
         }
-        ctx.strokeStyle = 'rgba(99, 102, 241, 0.24)';
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.16)';
         ctx.stroke();
       }
 
-      // 4. Draw Intersecting Nodes / Dots with Dynamic Glow
+      // 4. Draw Intersecting Nodes / Dots (Subtle, refined, non-clustering)
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const node = nodes[r][c];
@@ -264,24 +268,27 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
 
           if (isNearMouse) {
             const intensity = Math.max(0, 1 - distToMouse / radius);
-            const currentRadius = nodeSize + intensity * 2.5;
+            // Gentle subtle radius increase (at most +0.4px so dots never become huge)
+            const currentRadius = nodeSize + intensity * 0.4;
 
-            // Outer soft glow halo
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, currentRadius + 3, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(99, 102, 241, ${0.18 + intensity * 0.40})`;
-            ctx.fill();
+            // Optional delicate micro-glow
+            if (intensity > 0.35) {
+              ctx.beginPath();
+              ctx.arc(node.x, node.y, currentRadius + 1.2, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(99, 102, 241, ${intensity * 0.12})`;
+              ctx.fill();
+            }
 
-            // Core glowing node
+            // Crisp node dot
             ctx.beginPath();
             ctx.arc(node.x, node.y, currentRadius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(67, 56, 202, ${0.80 + intensity * 0.20})`;
+            ctx.fillStyle = `rgba(79, 70, 229, ${0.45 + intensity * 0.4})`;
             ctx.fill();
           } else {
-            // Standard ambient node
+            // Standard ambient dot
             ctx.beginPath();
             ctx.arc(node.x, node.y, nodeSize, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(99, 102, 241, 0.55)';
+            ctx.fillStyle = 'rgba(99, 102, 241, 0.38)';
             ctx.fill();
           }
         }
@@ -301,7 +308,7 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [spacing, radius, pullStrength, springConstant, damping, nodeSize]);
+  }, [spacing, radius, pushStrength, springConstant, damping, nodeSize]);
 
   return (
     <div
