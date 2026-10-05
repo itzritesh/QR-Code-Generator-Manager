@@ -21,12 +21,12 @@ export interface KineticGridProps {
 
 export const KineticGrid: React.FC<KineticGridProps> = ({
   className = '',
-  spacing = 32,
-  radius = 180,
-  pullStrength = 2.0,
-  springConstant = 0.08,
-  damping = 0.88,
-  nodeSize = 2.0,
+  spacing = 34,
+  radius = 220,
+  pullStrength = 5.5,
+  springConstant = 0.06,
+  damping = 0.86,
+  nodeSize = 2.2,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -114,28 +114,46 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
     );
     intersectionObserver.observe(container);
 
-    // Mouse tracking on the parent section/container
-    const parent = container.parentElement || container;
-
+    // Track mouse movement globally on window so pointer-events-none elements never block cursor
     const handleMouseMove = (e: MouseEvent) => {
+      if (!container) return;
       const rect = container.getBoundingClientRect();
-      mouse.targetX = e.clientX - rect.left;
-      mouse.targetY = e.clientY - rect.top;
-      mouse.active = true;
+
+      // Active when hovering over or near the container
+      if (
+        e.clientX >= rect.left - 100 &&
+        e.clientX <= rect.right + 100 &&
+        e.clientY >= rect.top - 100 &&
+        e.clientY <= rect.bottom + 100
+      ) {
+        mouse.targetX = e.clientX - rect.left;
+        mouse.targetY = e.clientY - rect.top;
+        mouse.active = true;
+      } else {
+        mouse.active = false;
+      }
     };
 
     const handleMouseLeave = () => {
-      mouse.targetX = -9999;
-      mouse.targetY = -9999;
       mouse.active = false;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        const rect = container.getBoundingClientRect();
-        mouse.targetX = e.touches[0].clientX - rect.left;
-        mouse.targetY = e.touches[0].clientY - rect.top;
+      if (!container || e.touches.length === 0) return;
+      const rect = container.getBoundingClientRect();
+      const touch = e.touches[0];
+
+      if (
+        touch.clientX >= rect.left - 80 &&
+        touch.clientX <= rect.right + 80 &&
+        touch.clientY >= rect.top - 80 &&
+        touch.clientY <= rect.bottom + 80
+      ) {
+        mouse.targetX = touch.clientX - rect.left;
+        mouse.targetY = touch.clientY - rect.top;
         mouse.active = true;
+      } else {
+        mouse.active = false;
       }
     };
 
@@ -143,10 +161,10 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
       mouse.active = false;
     };
 
-    parent.addEventListener('mousemove', handleMouseMove, { passive: true });
-    parent.addEventListener('mouseleave', handleMouseLeave, { passive: true });
-    parent.addEventListener('touchmove', handleTouchMove, { passive: true });
-    parent.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('mouseleave', handleMouseLeave, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     let time = 0;
 
@@ -156,12 +174,12 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
         return;
       }
 
-      time += 0.02;
+      time += 0.025;
 
       // Smooth mouse position interpolation
       if (mouse.active) {
-        mouse.x += (mouse.targetX - mouse.x) * 0.22;
-        mouse.y += (mouse.targetY - mouse.y) * 0.22;
+        mouse.x += (mouse.targetX - mouse.x) * 0.25;
+        mouse.y += (mouse.targetY - mouse.y) * 0.25;
       } else {
         mouse.x = -9999;
         mouse.y = -9999;
@@ -169,31 +187,32 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Update Physics for each Node
+      // 1. Update Physics for each Node (Dynamic Waves + Interactive Pull)
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const node = nodes[r][c];
 
-          // Mouse warp (attraction towards cursor with elastic pull)
+          // Continuous harmonic wave motion across the mesh
+          const waveY = Math.sin(time * 1.8 + node.baseX * 0.015 + node.baseY * 0.015) * 5.5;
+          const waveX = Math.cos(time * 1.4 + node.baseX * 0.015 - node.baseY * 0.015) * 4.0;
+
+          // Interactive magnetic cursor pull / gravity warp
           if (mouse.active) {
             const dx = mouse.x - node.x;
             const dy = mouse.y - node.y;
             const dist = Math.hypot(dx, dy);
 
             if (dist < radius && dist > 1) {
-              const force = Math.pow(1 - dist / radius, 1.6) * pullStrength;
+              const force = Math.sin((1 - dist / radius) * (Math.PI / 2)) * pullStrength;
               const angle = Math.atan2(dy, dx);
-              node.vx += Math.cos(angle) * force * 4.2;
-              node.vy += Math.sin(angle) * force * 4.2;
+              node.vx += Math.cos(angle) * force * 1.8;
+              node.vy += Math.sin(angle) * force * 1.8;
             }
           }
 
-          // Subtle harmonic ambient motion when idle
-          const ambientWave = Math.sin(time + node.baseX * 0.01 + node.baseY * 0.01) * 0.6;
-
-          // Hooke's Law Spring Force returning to base position
-          const targetX = node.baseX;
-          const targetY = node.baseY + ambientWave;
+          // Hooke's Law Spring Force returning to animated wave base position
+          const targetX = node.baseX + waveX;
+          const targetY = node.baseY + waveY;
           const ax = (targetX - node.x) * springConstant;
           const ay = (targetY - node.y) * springConstant;
 
@@ -217,7 +236,7 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
             ctx.lineTo(node.x, node.y);
           }
         }
-        ctx.strokeStyle = 'rgba(99, 102, 241, 0.20)';
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.24)';
         ctx.stroke();
       }
 
@@ -232,7 +251,7 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
             ctx.lineTo(node.x, node.y);
           }
         }
-        ctx.strokeStyle = 'rgba(99, 102, 241, 0.20)';
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.24)';
         ctx.stroke();
       }
 
@@ -245,24 +264,24 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
 
           if (isNearMouse) {
             const intensity = Math.max(0, 1 - distToMouse / radius);
-            const currentRadius = nodeSize + intensity * 2.2;
+            const currentRadius = nodeSize + intensity * 2.5;
 
-            // Outer glow ring
+            // Outer soft glow halo
             ctx.beginPath();
-            ctx.arc(node.x, node.y, currentRadius + 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(99, 102, 241, ${0.15 + intensity * 0.35})`;
+            ctx.arc(node.x, node.y, currentRadius + 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(99, 102, 241, ${0.18 + intensity * 0.40})`;
             ctx.fill();
 
-            // Core dot
+            // Core glowing node
             ctx.beginPath();
             ctx.arc(node.x, node.y, currentRadius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(67, 56, 202, ${0.7 + intensity * 0.3})`;
+            ctx.fillStyle = `rgba(67, 56, 202, ${0.80 + intensity * 0.20})`;
             ctx.fill();
           } else {
-            // Standard ambient dot
+            // Standard ambient node
             ctx.beginPath();
             ctx.arc(node.x, node.y, nodeSize, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(99, 102, 241, 0.50)';
+            ctx.fillStyle = 'rgba(99, 102, 241, 0.55)';
             ctx.fill();
           }
         }
@@ -277,10 +296,10 @@ export const KineticGrid: React.FC<KineticGridProps> = ({
       cancelAnimationFrame(animationFrameId);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
-      parent.removeEventListener('mousemove', handleMouseMove);
-      parent.removeEventListener('mouseleave', handleMouseLeave);
-      parent.removeEventListener('touchmove', handleTouchMove);
-      parent.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [spacing, radius, pullStrength, springConstant, damping, nodeSize]);
 
