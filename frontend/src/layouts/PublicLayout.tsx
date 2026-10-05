@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { HiOutlineQrcode, HiOutlineMenu, HiOutlineX } from 'react-icons/hi';
-import { useHealthCheck } from '../hooks/useHealthCheck';
-import { Badge } from '../components/ui/Badge';
 import { Button, IconButton } from '../components/ui/Button';
 
 export const PublicLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { isHealthy } = useHealthCheck();
 
   const publicNavLinks = [
     { label: 'Overview', path: '/' },
-    { label: 'System Health', path: '/status' },
   ];
 
   return (
@@ -58,20 +54,6 @@ export const PublicLayout: React.FC = () => {
 
             {/* Right Action Buttons */}
             <div className="hidden sm:flex items-center gap-3">
-              <Link to="/status" className="flex items-center">
-                {isHealthy ? (
-                  <Badge variant="success" dot size="sm">
-                    API Online
-                  </Badge>
-                ) : (
-                  <Badge variant="neutral" dot size="sm">
-                    Connecting...
-                  </Badge>
-                )}
-              </Link>
-
-              <div className="h-4 w-px bg-slate-200 mx-1" />
-
               <Link to="/login">
                 <Button variant="ghost" size="md">
                   Sign In

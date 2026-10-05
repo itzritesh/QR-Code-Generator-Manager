@@ -12,7 +12,6 @@ export const Navbar: React.FC = () => {
 
   const navLinks = [
     { label: 'Overview', path: '/' },
-    { label: 'System Health', path: '/status' },
   ];
 
   return (
